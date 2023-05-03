@@ -1112,7 +1112,7 @@ void random_connected_graph( int v,
       j = ran( i );
       adj_matrix[ tree[ i ] * v + tree[ j ] ] =
          adj_matrix[ tree[ j ] * v + tree[ i ] ] =
-         weight_flag ? 1 + ran( max_wgt ) : 1;
+         weight_flag ? 1 + ran( max_wgt ) : -1;
    }
 
    /* Add additional random edges until achieving at least desired number */
@@ -1129,7 +1129,7 @@ void random_connected_graph( int v,
 
       index = i * v + j;
       if ( !adj_matrix[ index ] ) {
-         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : 1;
+         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : -1;
          count++;
       }
    }
@@ -1183,7 +1183,7 @@ void random_graph( int v,
 
       index = i * v + j;
       if ( !adj_matrix[ index ] ) {
-         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : 1;
+         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : -1;
          count++;
       }
    }
@@ -1585,7 +1585,7 @@ void print_graph( int v,
                   int e,
                   char* out_file,
                   int* adj_matrix,
-                  int dir_flag )
+                  int dir_flag)
 {
    int i, j, index;
    FILE *fp;
@@ -1596,21 +1596,25 @@ void print_graph( int v,
    }
    printf( "\n\tWriting graph to file %s.\n", out_file );
 
-   fprintf( fp, "%5d   %5d\n", v, e );
+   fprintf( fp, "%d %d\n", v, e );
 
    if ( !dir_flag )
       for ( i = 1; i < v; i++ )
          for ( j = i + 1; j <= v; j++ ) {
             index = ( i - 1 ) * v + j - 1;
-            if ( adj_matrix[ index ] )
-               fprintf( fp, "%5d   %5d   %5d\n", i, j, adj_matrix[ index ] );
+            if ( adj_matrix[ index ] == -1 )
+               fprintf( fp, "%d %d\n", i, j );
+            else if ( adj_matrix[ index ] > 0 )
+               fprintf( fp, "%d %d %d\n", i, j, adj_matrix[ index ] );
          }
    else
       for ( i = 1; i <= v; i++ )
          for ( j = 1; j <= v; j++ ) {
             index = ( i - 1 ) * v + j - 1;
-            if ( adj_matrix[ index ] )
-               fprintf( fp, "%5d   %5d   %5d\n", i, j, adj_matrix[ index ] );
+            if ( adj_matrix[ index ]  == -1 )
+               fprintf( fp, "%d %d\n", i, j );
+            else if ( adj_matrix[ index ] > 0 )
+               fprintf( fp, "%d %d %d\n", i, j, adj_matrix[ index ] );
          }
    fclose( fp );
    printf( "\tGraph is written to file %s.\n", out_file );
