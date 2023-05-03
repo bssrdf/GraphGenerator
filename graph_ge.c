@@ -1216,11 +1216,11 @@ void r_graph( int v,
 
    printf( "\n\tWriting graph to file %s.\n", out_file );
 
-   fprintf( fp, "%5d   %5d\n", v, e );
+   fprintf( fp, "%d %d\n", v, e );
 
    for ( i = 0; i < e; i++ )
-      fprintf( fp, "%5d   %5d   %5d\n", 1 + ran( v ), 1 + ran( v ),
-               weight_flag ? 1 + ran( max_wgt ) : 1 );
+      fprintf( fp, "%d %d %d\n", 1 + ran( v ), 1 + ran( v ),
+               weight_flag ? 1 + ran( max_wgt ) : -1 );
 
    printf( "\tGraph is written to file %s.\n", out_file );
    fclose( fp );
@@ -1266,7 +1266,7 @@ void random_digraph( int v,
 
       index = i * v + j;
       if ( !adj_matrix[ index ] ) {
-         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : 1;
+         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : -1;
          count++;
       }
    }
@@ -1324,7 +1324,7 @@ void directed_acyclic_graph( int v,
       j = dag[ j ];
       index = i * v + j;
       if ( !adj_matrix[ index ] ) {
-         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : 1;
+         adj_matrix[ index ] = weight_flag ? 1 + ran( max_wgt ) : -1;
          count++;
       }
    }
@@ -1335,7 +1335,7 @@ void directed_acyclic_graph( int v,
       printf( "\n\t\t Could not open file %s.\n", dag_file );
    else {
       for ( i = 0; i < v; i++ )
-         fprintf( fptr, "%5d\n", 1 + dag[ i ] );
+         fprintf( fptr, "%d\n", 1 + dag[ i ] );
       fclose( fptr );
    }
 
@@ -1360,14 +1360,14 @@ void complete_graph( int v,
    }
    printf( "\n\tWriting graph to file %s.\n", out_file );
 
-   fprintf( fp, "%5d   %5d\n", v,
+   fprintf( fp, "%d %d\n", v,
             dir_flag ? v * ( v - 1 ) : v * ( v - 1 ) / 2 );
 
    for ( i = 1; i < v; i++ )
       for ( j = i + 1; j <= v; j++ ) {
-         fprintf( fp, "%5d   %5d   %5d\n", i, j, 1 + ran( max_wgt ) );
+         fprintf( fp, "%d %d %d\n", i, j, 1 + ran( max_wgt ) );
          if ( dir_flag )
-            fprintf( fp, "%5d   %5d   %5d\n", j, i, 1 + ran( max_wgt ) );
+            fprintf( fp, "%d %d %d\n", j, i, 1 + ran( max_wgt ) );
       }
 
    fclose( fp );
