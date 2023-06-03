@@ -175,13 +175,72 @@ typedef struct {
    char record[ RecordSize ];
 } Record;
 
+/* output format*/ 
+#define STANDARD 1 /* one conenction each row*/
+#define LEETCODE 2 /* all connections in one row*/
+#define START0 0 /* node index starts from 0 */
+#define START1 1 /* node index starts from 1 */
+
 int zero_vertex_or_edge_count( void );
 void fix_imbalanced_graph( void );
+
+void print_graph_standard( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag );
+
+void print_graph_leetcode( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag );
+
+void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag,
+                  int format)
+{
+
+   if (format == STANDARD) {
+      print_graph_standard(v, e, out_file, adj_matrix, dir_flag);
+   }
+   else if(format == LEETCODE) {
+      print_graph_leetcode(v, e, out_file, adj_matrix, dir_flag);
+   }
+   else{
+
+   }
+   
+}
+
+/*void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag)
+{
+   print_graph(v, e, out_file, adj_matrix, dir_flag, STANDARD);
+   
+}
+
+
 void print_graph( int v,
                   int e,
                   char* out_file,
                   int* adj_matrix,
                   int dir_flag );
+
+void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag,
+                  int format);*/
+
+
 int unpicked_vertices_p( int* closed, int n );
 int pick_to( int* closed, int vertices );
 void network_flow_graph( int vertices,
@@ -245,6 +304,8 @@ void display_max_weight_menu( void );
 void display_directed_menu( void );
 void display_max_degree_menu( void );
 void display_outfile_menu( int count, int index1, int index2 );
+void display_outfile_format_menu(void);
+void display_start_index_menu(void);
 void seed_ran( void );
 int illegal_parms( int files );
 int ran( int k );     /* customized random number generator */
@@ -334,6 +395,10 @@ static char *connected_prompts[] =
 
 static char *main_file_prompt = " File for graph:  ";
 
+static char *main_file_format_prompt = " File format for graph: (1) STANDARD (2) LEETCODE:  ";
+
+static char *main_start_index_prompt = " Start Index for graph: (0) 0 (1) 1:  ";
+
 #define TopologicalSort      0
 #define IsomorphicGraph      1
 #define Isomorphism          2
@@ -376,6 +441,8 @@ typedef struct menu {
    GraphProps   props;
    GraphParms   parms;
    Outfile      outfiles;
+   int          outfile_format; 
+   int          start_index;
 } MenuStruct;
 
 typedef MenuStruct *Menu;
@@ -399,6 +466,8 @@ static int   build_more_graphs,
 int main()
 {
    build_more_graphs = True;
+   menu->outfile_format = 1;
+   menu->start_index = 0;
    build_graphs();
    return 0;
 }
@@ -450,7 +519,9 @@ void process_choice( void )
          display_weighted_menu();
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
+         display_start_index_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -468,7 +539,9 @@ void process_choice( void )
          display_weighted_menu();
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
+         display_start_index_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();         
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -485,7 +558,9 @@ void process_choice( void )
          display_weighted_menu();
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
+         display_start_index_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();         
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -501,7 +576,9 @@ void process_choice( void )
          display_weighted_menu();
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
+         display_start_index_menu();
          display_outfile_menu( 2, TopologicalSort, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 2 ) )
             return;
          else
@@ -516,7 +593,9 @@ void process_choice( void )
          display_dimensions_menu( VerticesOnly );
          display_max_weight_menu();
          display_directed_menu();
+         display_start_index_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();
          complete_graph( menu -> parms.vertex_count,
                          menu -> parms.max_weight,
                          menu -> props.directed_p,
@@ -526,7 +605,9 @@ void process_choice( void )
          menu -> props.isomorphic_p = True;
          display_dimensions_menu( VerticesOnly );
          display_max_degree_menu();
+         display_start_index_menu();
          display_outfile_menu( 3, IsomorphicGraph, Isomorphism );
+         display_outfile_format_menu();
          if ( illegal_parms( 3 ) )
             return;
          else
@@ -540,7 +621,9 @@ void process_choice( void )
          menu -> props.simple_p = True;
          display_dimensions_menu( EdgesAndVertices );
          display_directed_menu();
+         display_start_index_menu();
          display_outfile_menu( 2, HamiltonianCycle, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 2 ) )
             return;
          else
@@ -555,7 +638,9 @@ void process_choice( void )
          menu -> props.directed_p = True;
          display_dimensions_menu( EdgesAndVertices );
          display_max_weight_menu();
+         display_start_index_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -656,6 +741,18 @@ void display_outfile_menu( int count, int index1, int index2 )
          scanf( "%s", menu -> outfiles.outfile3 );
       }
    }
+}
+
+void display_outfile_format_menu(void) 
+{
+   printf( "\n\t\t%s", main_file_format_prompt );
+   scanf( "%d", &(menu -> outfile_format));
+}
+
+void display_start_index_menu(void) 
+{
+   printf( "\n\t\t%s", main_start_index_prompt );
+   scanf( "%d", &(menu -> start_index));
 }
 
 int zero_vertex_or_edge_count( void )
@@ -952,7 +1049,7 @@ void isomorphic_graph_pair( int vertices,
    }
 
    /* print original graph */
-   print_graph( vertices, edges, first, adj_matrix, Undirected );
+   print_graph( vertices, edges, first, adj_matrix, Undirected, menu->outfile_format);
    
    /* print an isomorphism */
    rename_vertices( aliases, vertices );
@@ -1134,7 +1231,7 @@ void random_connected_graph( int v,
       }
    }
 
-   print_graph( v, count, out_file, adj_matrix, Undirected );
+   print_graph( v, count, out_file, adj_matrix, Undirected, menu->outfile_format);
 
    free( tree );
    free( adj_matrix );
@@ -1188,7 +1285,7 @@ void random_graph( int v,
       }
    }
 
-   print_graph( v, e, out_file, adj_matrix, Undirected );
+   print_graph( v, e, out_file, adj_matrix, Undirected, menu->outfile_format);
 
    free( adj_matrix );
 }
@@ -1271,7 +1368,7 @@ void random_digraph( int v,
       }
    }
 
-   print_graph( v, e, out_file, adj_matrix, Directed );
+   print_graph( v, e, out_file, adj_matrix, Directed, menu->outfile_format);
    free( adj_matrix );
 }
 
@@ -1329,7 +1426,7 @@ void directed_acyclic_graph( int v,
       }
    }
 
-   print_graph( v, e, out_file, adj_matrix, Directed );
+   print_graph( v, e, out_file, adj_matrix, Directed, menu->outfile_format);
 
    if ( ( fptr = fopen( dag_file, "w" ) ) == NULL )
       printf( "\n\t\t Could not open file %s.\n", dag_file );
@@ -1455,7 +1552,7 @@ void hamiltonian_cycle_graph( int v,
       }
    }
 
-   print_graph( v, count, out_file, adj_matrix, dir_flag );
+   print_graph( v, count, out_file, adj_matrix, dir_flag, menu->outfile_format);
 }
 
 /* This function generates a random network.  The user selects
@@ -1533,7 +1630,7 @@ void network_flow_graph( int vertices,
          edge_count++;
       }
    }
-   print_graph( vertices, edge_count, outfile, adj_matrix, Directed );
+   print_graph( vertices, edge_count, outfile, adj_matrix, Directed, menu->outfile_format);
 
    /* free storage */
    free( adj_matrix );
@@ -1581,13 +1678,28 @@ int ran( int k )
    return rand() % k;
 }
 
-void print_graph( int v,
+
+static void transform_index(int i, int j, 
+                           int *ii, int *jj){
+   if (menu->start_index == START0){
+      *ii = i-1;
+      *jj = j-1; 
+   }
+   else{
+      *ii = i;
+      *jj = j; 
+   }   
+}
+
+void print_graph_standard( int v,
                   int e,
                   char* out_file,
                   int* adj_matrix,
                   int dir_flag)
 {
    int i, j, index;
+   int ii, jj;
+
    FILE *fp;
 
    if ( ( fp = fopen( out_file, "w" ) ) == NULL ) {
@@ -1602,20 +1714,90 @@ void print_graph( int v,
       for ( i = 1; i < v; i++ )
          for ( j = i + 1; j <= v; j++ ) {
             index = ( i - 1 ) * v + j - 1;
+            transform_index(i, j, &ii, &jj);
             if ( adj_matrix[ index ] == -1 )
-               fprintf( fp, "%d %d\n", i, j );
+               fprintf( fp, "%d %d\n", ii, jj );
             else if ( adj_matrix[ index ] > 0 )
-               fprintf( fp, "%d %d %d\n", i, j, adj_matrix[ index ] );
+               fprintf( fp, "%d %d %d\n", ii, jj, adj_matrix[ index ] );
          }
    else
       for ( i = 1; i <= v; i++ )
          for ( j = 1; j <= v; j++ ) {
             index = ( i - 1 ) * v + j - 1;
+            transform_index(i, j, &ii, &jj);
             if ( adj_matrix[ index ]  == -1 )
-               fprintf( fp, "%d %d\n", i, j );
+               fprintf( fp, "%d %d\n", ii, jj );
             else if ( adj_matrix[ index ] > 0 )
-               fprintf( fp, "%d %d %d\n", i, j, adj_matrix[ index ] );
+               fprintf( fp, "%d %d %d\n", ii, jj, adj_matrix[ index ] );
          }
+   fclose( fp );
+   printf( "\tGraph is written to file %s.\n", out_file );
+}
+
+void print_graph_leetcode( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag)
+{
+   int i, j, index, k;
+   int ii, jj;
+   FILE *fp;
+
+   if ( ( fp = fopen( out_file, "w" ) ) == NULL ) {
+      printf( "Unable to open file %s for writing.\n", out_file );
+      return;
+   }
+   printf( "\n\tWriting graph to file %s.\n", out_file );
+
+   fprintf( fp, "%d %d\n", v, e );
+
+   fprintf( fp, "[");
+   k = 0;
+   if ( !dir_flag ){
+      for ( i = 1; i < v; i++ )
+         for ( j = i + 1; j <= v; j++ ) {            
+            index = ( i - 1 ) * v + j - 1;
+            transform_index(i, j, &ii, &jj);
+            if ( adj_matrix[ index ] == -1 ) {
+               if (k==0)
+                  fprintf( fp, "[%d,%d]", ii, jj );
+               else
+                  fprintf( fp, ",[%d,%d]", ii, jj ); 
+               k++;
+            }
+            else if ( adj_matrix[ index ] > 0 ){
+               if (k==0)
+                  fprintf( fp, "[%d,%d,%d]", ii, jj, adj_matrix[ index ] );
+               else   
+                  fprintf( fp, ",[%d,%d,%d]", ii, jj, adj_matrix[ index ] );
+               k++;
+            }
+         }
+      fprintf( fp, "]");
+   }
+   else{
+      for ( i = 1; i <= v; i++ )
+         for ( j = 1; j <= v; j++ ) {
+            index = ( i - 1 ) * v + j - 1;
+            transform_index(i, j, &ii, &jj);               
+            if ( adj_matrix[ index ]  == -1 ){
+               if (k==0)
+                  fprintf( fp, "[%d,%d]", ii, jj );
+               else
+                  fprintf( fp, ",[%d,%d]", ii, jj );
+               k++;
+            }
+            else if ( adj_matrix[ index ] > 0 ){
+               if (k==0)
+                  fprintf( fp, "[%d,%d,%d]", ii, jj, adj_matrix[ index ] );
+               else
+                  fprintf( fp, ",[%d,%d,%d]", ii, jj, adj_matrix[ index ] );
+               k++;
+            }
+         }
+      fprintf( fp, "]");   
+   }
    fclose( fp );
    printf( "\tGraph is written to file %s.\n", out_file );
 }
