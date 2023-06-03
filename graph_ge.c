@@ -175,13 +175,70 @@ typedef struct {
    char record[ RecordSize ];
 } Record;
 
+/* output format*/ 
+#define STANDARD 1 /* one conenction each row*/
+#define LEETCODE 2 /* all connections in one row*/
+
 int zero_vertex_or_edge_count( void );
 void fix_imbalanced_graph( void );
-void print_graph( int v,
+
+void print_graph_standard( int v,
                   int e,
                   char* out_file,
                   int* adj_matrix,
                   int dir_flag );
+
+void print_graph_leetcode( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag );
+
+void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag,
+                  int format)
+{
+
+   if (format == STANDARD) {
+      print_graph_standard(v, e, out_file, adj_matrix, dir_flag);
+   }
+   else if(format == LEETCODE) {
+      print_graph_leetcode(v, e, out_file, adj_matrix, dir_flag);
+   }
+   else{
+
+   }
+   
+}
+
+void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag)
+{
+   print_graph(v, e, out_file, adj_matrix, dir_flag, STANDARD);
+   
+}
+
+
+/*void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag );
+
+void print_graph( int v,
+                  int e,
+                  char* out_file,
+                  int* adj_matrix,
+                  int dir_flag,
+                  int format);*/
+
+
 int unpicked_vertices_p( int* closed, int n );
 int pick_to( int* closed, int vertices );
 void network_flow_graph( int vertices,
@@ -245,6 +302,7 @@ void display_max_weight_menu( void );
 void display_directed_menu( void );
 void display_max_degree_menu( void );
 void display_outfile_menu( int count, int index1, int index2 );
+void display_outfile_format_menu(void);
 void seed_ran( void );
 int illegal_parms( int files );
 int ran( int k );     /* customized random number generator */
@@ -334,6 +392,8 @@ static char *connected_prompts[] =
 
 static char *main_file_prompt = " File for graph:  ";
 
+static char *main_file_format_prompt = " File format for graph: (1) STANDARD (2) LEETCODE";
+
 #define TopologicalSort      0
 #define IsomorphicGraph      1
 #define Isomorphism          2
@@ -376,6 +436,7 @@ typedef struct menu {
    GraphProps   props;
    GraphParms   parms;
    Outfile      outfiles;
+   int          outfile_format; 
 } MenuStruct;
 
 typedef MenuStruct *Menu;
@@ -399,6 +460,7 @@ static int   build_more_graphs,
 int main()
 {
    build_more_graphs = True;
+   menu->outfile_format = 1;
    build_graphs();
    return 0;
 }
@@ -469,6 +531,7 @@ void process_choice( void )
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -486,6 +549,7 @@ void process_choice( void )
          if ( menu -> props.weighted_p )
             display_max_weight_menu();
          display_outfile_menu( 1, None, None );
+         display_outfile_format_menu();
          if ( illegal_parms( 1 ) )
             return;
          else
@@ -656,6 +720,12 @@ void display_outfile_menu( int count, int index1, int index2 )
          scanf( "%s", menu -> outfiles.outfile3 );
       }
    }
+}
+
+void display_outfile_format_menu(void) 
+{
+   printf( "\n\t\t%s", main_file_format_prompt );
+   scanf( "%d", menu -> outfile_format);
 }
 
 int zero_vertex_or_edge_count( void )
@@ -1134,7 +1204,7 @@ void random_connected_graph( int v,
       }
    }
 
-   print_graph( v, count, out_file, adj_matrix, Undirected );
+   print_graph( v, count, out_file, adj_matrix, Undirected, menu->outfile_format);
 
    free( tree );
    free( adj_matrix );
@@ -1581,7 +1651,8 @@ int ran( int k )
    return rand() % k;
 }
 
-void print_graph( int v,
+
+void print_graph_standard( int v,
                   int e,
                   char* out_file,
                   int* adj_matrix,
